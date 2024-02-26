@@ -115,7 +115,7 @@ class Program
     {
         while (runningThreads > 0)
         {
-            Thread.Sleep(100); // Let's sleep a bit to avoid CPU hogging
+            Thread.Sleep(100);
         }
     }
 }
