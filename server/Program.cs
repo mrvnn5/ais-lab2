@@ -54,12 +54,12 @@ class Program
                     }
                 }
 
-                Thread.Sleep(100); // Let's sleep a bit to avoid CPU hogging
+                Thread.Sleep(100);
             }
         }
         finally
         {
-            listener.Stop(); // Stop listening for new clients
+            listener.Stop();
             WaitForThreadsToFinish();
             Console.WriteLine("Server shutdown complete.");
         }
@@ -106,7 +106,7 @@ class Program
     {
         while (runningThreads > 0)
         {
-            Thread.Sleep(100); // Let's sleep a bit to avoid CPU hogging
+            Thread.Sleep(100);
         }
     }
 }
