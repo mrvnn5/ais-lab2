@@ -1,0 +1,11 @@
+[Unit]
+Description=Server for lab
+
+[Service]
+ExecStart=/srv/server/server 8888 10 /var/files
+SyslogIdentifier=MyServer
+
+Environment=DOTNET_ROOT=/usr/lib64/dotnet
+
+[Install]
+WantedBy=multi-user.target
