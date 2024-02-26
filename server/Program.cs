@@ -1,14 +1,13 @@
-﻿using System;
-using System.IO;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 
 class Program
 {
     private static string savePath = "tmp";
     private static bool _exitRequested = false;
     private static int runningThreads = 0;
+    private static ManualResetEventSlim waitForProcessShutdownStart = new ManualResetEventSlim();
+    private static ManualResetEventSlim waitForMainExit = new ManualResetEventSlim();
 
     static void Main(string[] args)
     {
@@ -22,11 +21,21 @@ class Program
         int maxThreads = int.Parse(args[1]);
         savePath = args[2];
 
+        AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
+        {
+            Console.WriteLine("\nExit requested. SIGTERM got. Shutting down server...");
+            _exitRequested = true;
+            waitForProcessShutdownStart.Set(); 
+            waitForMainExit.Wait(); 
+        };
+
         Console.CancelKeyPress += (sender, e) =>
         {
             _exitRequested = true;
             e.Cancel = true;
             Console.WriteLine("\nExit requested. Shutting down server...");
+            waitForProcessShutdownStart.Set();
+            waitForMainExit.Wait();
         };
 
         ThreadPool.SetMaxThreads(maxThreads, maxThreads);
@@ -46,7 +55,6 @@ class Program
                         ThreadPool.QueueUserWorkItem(new WaitCallback(HandleClient), listener.AcceptTcpClient());
                         Interlocked.Increment(ref runningThreads);
                         Console.WriteLine("Got new user connection!");
-                        Thread.Sleep(1000);
                     }
                     else
                     {
@@ -62,6 +70,7 @@ class Program
             listener.Stop();
             WaitForThreadsToFinish();
             Console.WriteLine("Server shutdown complete.");
+            waitForMainExit.Set(); 
         }
     }
 
@@ -106,7 +115,7 @@ class Program
     {
         while (runningThreads > 0)
         {
-            Thread.Sleep(100);
+            Thread.Sleep(100); // Let's sleep a bit to avoid CPU hogging
         }
     }
 }
